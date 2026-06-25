@@ -28,6 +28,8 @@ class FornecedorDespesa extends Model
         'valor_total' => 'decimal:2',
     ];
 
+    protected $appends = ['status_pagamento'];
+
     public function event(): BelongsTo
     {
         return $this->belongsTo(TenantEvent::class, 'event_id');
@@ -74,7 +76,7 @@ class FornecedorDespesa extends Model
     public function gerarParcelas(int $quantidade, \Carbon\Carbon $primeiroVencimento): void
     {
         $valorParcela = round($this->valor_total / $quantidade, 2);
-        $diferenca    = $this->valor_total - ($valorParcela * $quantidade);
+        $diferenca    = $this->valor_total - $valorParcela * $quantidade;
 
         $this->parcelas()->delete();
 
