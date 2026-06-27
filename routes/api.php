@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::prefix('events/{event}')->middleware('event.access')->group(function () {
+    Route::prefix('events/{event}')->name('api.')->middleware('event.access')->group(function () {
 
         Route::apiResource('payers', EventPagadorController::class)
             ->only(['index', 'store', 'destroy']);

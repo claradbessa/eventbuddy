@@ -27,10 +27,10 @@ class EventBuddyScenarioSeeder extends Seeder
 
         // ── 2. Evento ─────────────────────────────────────────────────────────
         $evento = TenantEvent::firstOrCreate(
-            ['slug' => 'casamento-clara-joao-2026'],
+            ['slug' => 'casamento-clara-erick-2026'],
             [
                 'owner_id'    => $clara->id,
-                'name'        => 'Casamento Clara & João',
+                'name'        => 'Casamento Clara & Erick',
                 'descricao'   => 'Casamento civil e festa',
                 'data_inicio' => Carbon::parse('2026-12-20'),
                 'data_fim'    => Carbon::parse('2026-12-21'),
@@ -42,7 +42,7 @@ class EventBuddyScenarioSeeder extends Seeder
         $this->command->info("Evento: {$evento->name} (#{$evento->id})");
 
         // ── 3. Pagadores ──────────────────────────────────────────────────────
-        [$pagClara, $pagNoivo, $pagMae] = $this->criarPagadores($evento);
+        [$pagClara, $pagNoivo] = $this->criarPagadores($evento);
 
         // ── 4. Despesa à vista — Taxa do Cartório ─────────────────────────────
         $this->criarDespesaCartorio($evento, $pagClara, $pagNoivo);
@@ -59,9 +59,8 @@ class EventBuddyScenarioSeeder extends Seeder
     private function criarPagadores(TenantEvent $evento): array
     {
         $pagadores = [
-            ['nome' => 'Clara',          'email' => 'clara@eventbuddy.test',  'tipo' => 'interno', 'percentual_responsabilidade' => 40.00],
-            ['nome' => 'Noivo (João)',    'email' => 'joao@eventbuddy.test',   'tipo' => 'externo', 'percentual_responsabilidade' => 40.00],
-            ['nome' => 'Mãe da Noiva',   'email' => 'mae@eventbuddy.test',    'tipo' => 'externo', 'percentual_responsabilidade' => 20.00],
+            ['nome' => 'Clara',         'email' => 'clara@eventbuddy.test', 'tipo' => 'interno', 'percentual_responsabilidade' => 50.00],
+            ['nome' => 'Erick',          'email' => 'erick@eventbuddy.test', 'tipo' => 'externo', 'percentual_responsabilidade' => 50.00],
         ];
 
         $criados = [];

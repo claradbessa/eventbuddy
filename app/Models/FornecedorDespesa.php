@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class FornecedorDespesa extends Model
 {
@@ -22,13 +23,21 @@ class FornecedorDespesa extends Model
         'valor_total',
         'comprovante_url',
         'observacoes',
+        'contrato_path',
     ];
 
     protected $casts = [
         'valor_total' => 'decimal:2',
     ];
 
-    protected $appends = ['status_pagamento'];
+    protected $appends = ['status_pagamento', 'contrato_url'];
+
+    public function getContratoUrlAttribute(): ?string
+    {
+        return $this->contrato_path
+            ? Storage::disk('public')->url($this->contrato_path)
+            : null;
+    }
 
     public function event(): BelongsTo
     {
