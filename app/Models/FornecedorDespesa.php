@@ -24,6 +24,8 @@ class FornecedorDespesa extends Model
         'comprovante_url',
         'observacoes',
         'contrato_path',
+        'pix_key',
+        'pix_copia_e_cola',
     ];
 
     protected $casts = [

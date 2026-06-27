@@ -9,36 +9,30 @@ use Illuminate\Http\JsonResponse;
 
 class EventPagadorController extends Controller
 {
-    public function index(TenantEvent $event): JsonResponse
+    public function store(StorePagadorRequest $request, TenantEvent $evento): JsonResponse
     {
-        $pagadores = $event->pagadores()
-            ->withCount('despesas')
-            ->orderBy('nome')
-            ->get();
+        if ($evento->owner_id !== $request->user()->id) {
+            abort(403);
+        }
 
-        return response()->json($pagadores);
-    }
-
-    public function store(StorePagadorRequest $request, TenantEvent $event): JsonResponse
-    {
-        $pagador = $event->pagadores()->create($request->validated());
+        $pagador = $evento->pagadores()->create($request->validated());
 
         return response()->json($pagador, 201);
     }
 
-    public function destroy(TenantEvent $event, EventPagador $payer): JsonResponse
+    public function destroy(TenantEvent $evento, EventPagador $pagador): JsonResponse
     {
-        if ($payer->event_id !== $event->id) {
+        if ($pagador->event_id !== $evento->id) {
             abort(404);
         }
 
-        if ($payer->despesas()->exists()) {
+        if ($pagador->despesas()->exists()) {
             return response()->json([
                 'message' => 'Pagador vinculado a despesas e não pode ser removido.',
             ], 422);
         }
 
-        $payer->delete();
+        $pagador->delete();
 
         return response()->json(null, 204);
     }

@@ -35,4 +35,20 @@ return [
         ],
     ],
 
+    'google' => [
+        'client_id'     => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect'      => env('GOOGLE_REDIRECT_URI'),
+        'scopes'        => [
+            'openid',
+            'profile',
+            'email',
+            'https://www.googleapis.com/auth/calendar.events',
+        ],
+        'with' => [
+            'access_type' => 'offline',
+            'prompt'      => 'consent',
+        ],
+    ],
+
 ];

@@ -15,7 +15,7 @@ class StoreDespesaRequest extends FormRequest
 
     public function rules(): array
     {
-        $eventId = $this->route('event')->id;
+        $eventId = $this->route('evento')->id;
 
         return [
             // Dados da despesa
@@ -26,6 +26,8 @@ class StoreDespesaRequest extends FormRequest
             'comprovante_url'   => ['nullable', 'string', 'url', 'max:500'],
             'observacoes'       => ['nullable', 'string'],
             'contrato'          => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:10240'],
+            'pix_key'           => ['nullable', 'string', 'max:255'],
+            'pix_copia_e_cola'  => ['nullable', 'string'],
 
             // Pagadores: array com ao menos 1 item
             'pagadores'         => ['required', 'array', 'min:1'],

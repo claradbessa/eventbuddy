@@ -30,6 +30,11 @@ class TenantEvent extends Model
         'data_fim'      => 'date',
     ];
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');

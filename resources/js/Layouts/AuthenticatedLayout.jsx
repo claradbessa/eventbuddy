@@ -6,7 +6,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function AuthenticatedLayout({ header, children }) {
-    const user = usePage().props.auth.user;
+    const { user, event_slug: eventSlug } = usePage().props.auth;
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
 
@@ -25,14 +25,14 @@ export default function AuthenticatedLayout({ header, children }) {
 
                             <div className="hidden sm:flex sm:items-center sm:gap-1">
                                 <NavLink
-                                    href={route('dashboard')}
-                                    active={route().current('dashboard')}
+                                    href={eventSlug ? route('evento.dashboard', { evento: eventSlug }) : route('dashboard')}
+                                    active={route().current('evento.dashboard') || route().current('dashboard')}
                                 >
                                     Dashboard
                                 </NavLink>
                                 <NavLink
-                                    href={route('expenses.index', 1)}
-                                    active={route().current('expenses.index')}
+                                    href={eventSlug ? route('fornecedores.index', { evento: eventSlug }) : '#'}
+                                    active={route().current('fornecedores.index')}
                                 >
                                     Fornecedores
                                 </NavLink>
@@ -86,10 +86,13 @@ export default function AuthenticatedLayout({ header, children }) {
                 {/* Mobile menu */}
                 <div className={(showingNavigationDropdown ? 'block' : 'hidden') + ' sm:hidden'}>
                     <div className="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink href={route('dashboard')} active={route().current('dashboard')}>
+                        <ResponsiveNavLink
+                            href={eventSlug ? route('evento.dashboard', { evento: eventSlug }) : route('dashboard')}
+                            active={route().current('evento.dashboard') || route().current('dashboard')}
+                        >
                             Dashboard
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink href={route('expenses.index', 1)} active={route().current('expenses.index')}>
+                        <ResponsiveNavLink href={eventSlug ? route('fornecedores.index', { evento: eventSlug }) : '#'} active={route().current('fornecedores.index')}>
                             Fornecedores
                         </ResponsiveNavLink>
                     </div>

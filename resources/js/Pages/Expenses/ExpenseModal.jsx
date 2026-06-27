@@ -62,6 +62,8 @@ function initialFormData(expense) {
                             ? String(parseFloat(p.pivot.valor))
                             : '',
         })),
+        pix_key:          expense?.pix_key          ?? '',
+        pix_copia_e_cola: expense?.pix_copia_e_cola ?? '',
         contrato: null,
         // { valor, vencimento } — NO id field to avoid null→"" FormData issues
         parcelas: pendingParcelas.length > 0
@@ -333,7 +335,7 @@ export default function ExpenseModal({ show, onClose, event, payers, expense, on
         setPayingParcela(parcelaId);
         try {
             const res = await axios.patch(
-                `/events/${event.id}/expenses/${expense.id}/parcelas/${parcelaId}`,
+                route('parcelas.pagar', { evento: event.slug, fornecedor: expense.id, parcela: parcelaId }),
             );
             setLocalParcelas((prev) => prev.map((p) => (p.id === parcelaId ? res.data : p)));
             setData('parcelas', data.parcelas.filter((_, i) => i !== parcelaIndex));
@@ -374,7 +376,7 @@ export default function ExpenseModal({ show, onClose, event, payers, expense, on
         setQuickError('');
 
         try {
-            const response = await axios.post(`/events/${event.id}/payers`, {
+            const response = await axios.post(route('pagadores.store', { evento: event.slug }), {
                 nome,
                 tipo: 'externo',
             });
@@ -412,9 +414,9 @@ export default function ExpenseModal({ show, onClose, event, payers, expense, on
             // PHP doesn't parse multipart/form-data for PATCH requests.
             // Use POST + _method spoofing so $request->validated() works correctly.
             transform((d) => ({ ...d, _method: 'patch' }));
-            post(route('expenses.update', [event.id, expense.id]), opts);
+            post(route('fornecedores.update', { evento: event.slug, fornecedor: expense.id }), opts);
         } else {
-            post(route('expenses.store', event.id), opts);
+            post(route('fornecedores.store', { evento: event.slug }), opts);
         }
     };
 
@@ -503,7 +505,7 @@ export default function ExpenseModal({ show, onClose, event, payers, expense, on
                     {/* Pagadores */}
                     <div>
                         <div className="mb-2 flex items-center justify-between">
-                            <InputLabel value="Pagadores *" />
+                            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Pagadores</p>
                             {allUsingPercentual && data.pagadores.length > 0 && (
                                 <span
                                     className={`text-xs font-medium ${
@@ -593,10 +595,32 @@ export default function ExpenseModal({ show, onClose, event, payers, expense, on
                         )}
                     </div>
 
+                    {/* PIX (opcional) */}
+                    <div className="rounded-lg border border-dashed border-slate-200 p-3 space-y-3">
+                        <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">PIX (opcional)</p>
+                        <Field label="Chave PIX" error={errors.pix_key}>
+                            <TextInput
+                                value={data.pix_key}
+                                onChange={(e) => setData('pix_key', e.target.value)}
+                                className="block w-full"
+                                placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória"
+                            />
+                        </Field>
+                        <Field label="PIX Copia e Cola" error={errors.pix_copia_e_cola}>
+                            <textarea
+                                value={data.pix_copia_e_cola}
+                                onChange={(e) => setData('pix_copia_e_cola', e.target.value)}
+                                rows={2}
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-500 focus:ring-gray-500 text-sm"
+                                placeholder="Código longo (opcional)"
+                            />
+                        </Field>
+                    </div>
+
                     {/* ── Parcelas ─────────────────────────────────────────── */}
                     <div>
                         <div className="mb-3 flex items-center justify-between">
-                            <InputLabel value="Parcelas *" />
+                            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Parcelas</p>
                             <InputError message={errors.parcelas} />
                         </div>
 
@@ -637,7 +661,7 @@ export default function ExpenseModal({ show, onClose, event, payers, expense, on
                                 {paidParcelas.map((p) => (
                                     <div
                                         key={p.id}
-                                        className="flex items-center gap-3 rounded-lg bg-emerald-50/60 px-3 py-2 text-sm opacity-70"
+                                        className="flex items-center gap-3 px-3 py-2 text-sm opacity-50"
                                     >
                                         <span className="w-7 shrink-0 text-center text-xs font-semibold text-gray-400">
                                             #{p.numero_parcela}
@@ -646,8 +670,8 @@ export default function ExpenseModal({ show, onClose, event, payers, expense, on
                                             {brl(p.valor_parcela)}
                                         </span>
                                         <span className="text-xs text-gray-400">{fmtDate(p.data_vencimento)}</span>
-                                        <span className="ml-auto rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                                            Pago {fmtDate(p.data_pagamento)}
+                                        <span className="ml-auto text-xs font-medium uppercase tracking-wider text-emerald-600">
+                                            Quitado {fmtDate(p.data_pagamento)}
                                         </span>
                                     </div>
                                 ))}
@@ -685,9 +709,9 @@ export default function ExpenseModal({ show, onClose, event, payers, expense, on
                                                 type="button"
                                                 onClick={() => handlePayParcela(dbId, i)}
                                                 disabled={isPaying}
-                                                className="shrink-0 rounded-md bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-100 disabled:opacity-50"
+                                                className="shrink-0 text-xs font-medium uppercase tracking-wider text-slate-300 transition hover:text-emerald-600 disabled:opacity-50"
                                             >
-                                                {isPaying ? '…' : '✓ Pago'}
+                                                {isPaying ? '…' : 'Pagar'}
                                             </button>
                                         )}
 
@@ -745,7 +769,7 @@ export default function ExpenseModal({ show, onClose, event, payers, expense, on
 
                     {/* Anexar Contrato */}
                     <div>
-                        <InputLabel value="Anexar Contrato" />
+                        <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Anexar Contrato</p>
                         <div className="mt-1">
                             <input
                                 type="file"
@@ -781,7 +805,7 @@ export default function ExpenseModal({ show, onClose, event, payers, expense, on
                             type="button"
                             onClick={() => {
                                 if (confirm('Tem certeza que deseja excluir este fornecedor e todas as suas parcelas?')) {
-                                    router.delete(route('expenses.destroy', [event.id, expense.id]), {
+                                    router.delete(route('fornecedores.destroy', { evento: event.slug, fornecedor: expense.id }), {
                                         onSuccess: () => onClose(),
                                     });
                                 }

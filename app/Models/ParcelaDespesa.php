@@ -19,6 +19,7 @@ class ParcelaDespesa extends Model
         'status',
         'comprovante_url',
         'observacoes',
+        'google_event_id',
     ];
 
     protected $casts = [
