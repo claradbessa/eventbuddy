@@ -1,8 +1,6 @@
+import ApplicationLogo from '@/Components/ApplicationLogo';
 import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -17,6 +15,16 @@ function GoogleIcon() {
     );
 }
 
+const inputClass = [
+    'mt-1.5 block w-full rounded-xl border border-slate-200 bg-white',
+    'px-3.5 py-2.5 text-sm text-slate-900 shadow-sm',
+    'placeholder:text-slate-300',
+    'focus:border-teal-600 focus:outline-none focus:ring-1 focus:ring-teal-600',
+    'transition',
+].join(' ');
+
+const labelClass = 'block text-xs font-semibold uppercase tracking-widest text-slate-400';
+
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
@@ -26,105 +34,117 @@ export default function Login({ status, canResetPassword }) {
 
     const submit = (e) => {
         e.preventDefault();
-
-        post(route('login'), {
-            onFinish: () => reset('password'),
-        });
+        post(route('login'), { onFinish: () => reset('password') });
     };
 
     return (
         <GuestLayout>
-            <Head title="Log in" />
+            <Head title="Entrar" />
+
+            {/* Logo + título dentro do card */}
+            <div className="mb-8 flex flex-col items-center gap-3">
+                <Link href="/">
+                    <ApplicationLogo className="h-20 w-auto" />
+                </Link>
+                <div className="text-center">
+                    <p className="text-base font-medium text-slate-800">Bem-vinda ao <strong className="font-bold">EventBuddy</strong></p>
+                    <p className="mt-0.5 text-xs text-slate-400">Seu assessor digital de eventos</p>
+                </div>
+            </div>
 
             {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
-                    {status}
-                </div>
+                <div className="mb-5 text-sm font-medium text-emerald-600">{status}</div>
             )}
 
-            <form onSubmit={submit}>
+            <form onSubmit={submit} className="space-y-5">
+                {/* E-mail */}
                 <div>
-                    <InputLabel htmlFor="email" value="Email" />
-
-                    <TextInput
+                    <label htmlFor="email" className={labelClass}>E-mail</label>
+                    <input
                         id="email"
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-1 block w-full"
                         autoComplete="username"
-                        isFocused={true}
+                        autoFocus
                         onChange={(e) => setData('email', e.target.value)}
+                        className={inputClass}
                     />
-
-                    <InputError message={errors.email} className="mt-2" />
+                    <InputError message={errors.email} className="mt-1.5" />
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
+                {/* Senha */}
+                <div>
+                    <label htmlFor="password" className={labelClass}>Senha</label>
+                    <input
                         id="password"
                         type="password"
                         name="password"
                         value={data.password}
-                        className="mt-1 block w-full"
                         autoComplete="current-password"
                         onChange={(e) => setData('password', e.target.value)}
+                        className={inputClass}
                     />
-
-                    <InputError message={errors.password} className="mt-2" />
+                    <InputError message={errors.password} className="mt-1.5" />
                 </div>
 
-                <div className="mt-4 block">
-                    <label className="flex items-center">
+                {/* Lembrar de mim + Esqueceu a senha? na mesma linha */}
+                <div className="flex items-center justify-between">
+                    <label className="flex cursor-pointer items-center gap-2.5">
                         <Checkbox
                             name="remember"
                             checked={data.remember}
-                            onChange={(e) =>
-                                setData('remember', e.target.checked)
-                            }
+                            onChange={(e) => setData('remember', e.target.checked)}
                         />
-                        <span className="ms-2 text-sm text-gray-600">
-                            Remember me
-                        </span>
+                        <span className="text-xs font-medium text-slate-500">Lembrar de mim</span>
                     </label>
-                </div>
-
-                <div className="mt-4 flex items-center justify-end">
                     {canResetPassword && (
                         <Link
                             href={route('password.request')}
-                            className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            className="text-xs text-slate-400 transition hover:text-slate-700"
                         >
-                            Forgot your password?
+                            Esqueceu a senha?
                         </Link>
                     )}
-
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Log in
-                    </PrimaryButton>
                 </div>
+
+                {/* Botão principal */}
+                <button
+                    type="submit"
+                    disabled={processing}
+                    className="w-full rounded-xl bg-slate-900 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:opacity-60"
+                >
+                    {processing ? 'Entrando…' : 'Entrar'}
+                </button>
             </form>
 
+            {/* Divisor + Google */}
             <div className="mt-6">
                 <div className="relative">
                     <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-200" />
+                        <div className="w-full border-t border-slate-100" />
                     </div>
-                    <div className="relative flex justify-center text-sm">
-                        <span className="bg-white px-4 text-gray-500">ou continue com</span>
+                    <div className="relative flex justify-center">
+                        <span className="bg-white px-4 text-xs text-slate-400">ou continue com</span>
                     </div>
                 </div>
 
                 <a
                     href={route('auth.google')}
-                    className="mt-4 flex w-full items-center justify-center gap-3 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+                    className="mt-4 flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none"
                 >
                     <GoogleIcon />
                     Entrar com Google
                 </a>
             </div>
+
+            {/* Link para cadastro */}
+            <p className="mt-6 text-center text-xs text-slate-400">
+                Não tem uma conta?{' '}
+                <Link href={route('register')} className="font-medium text-slate-700 transition hover:text-slate-900">
+                    Cadastre-se
+                </Link>
+            </p>
         </GuestLayout>
     );
 }

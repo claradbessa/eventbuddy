@@ -52,6 +52,25 @@ class GoogleCalendarService
         return $result->getId();
     }
 
+    /**
+     * Remove um evento da agenda primária do utilizador.
+     * Ignora silenciosamente erros 404 (evento já excluído).
+     */
+    public function deleteEvent(User $user, string $calendarEventId): void
+    {
+        $this->prepareClient($user);
+
+        $calendar = new Calendar($this->client);
+
+        try {
+            $calendar->events->delete('primary', $calendarEventId);
+        } catch (\Google\Service\Exception $e) {
+            if ($e->getCode() !== 404) {
+                throw $e;
+            }
+        }
+    }
+
     // ── Internals ──────────────────────────────────────────────────────────────
 
     private function buildCalendarEvent(array $dados): CalendarEvent

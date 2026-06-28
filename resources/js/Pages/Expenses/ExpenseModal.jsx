@@ -1,3 +1,4 @@
+import DatePicker from '@/Components/DatePicker';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import Modal from '@/Components/Modal';
@@ -321,6 +322,8 @@ export default function ExpenseModal({ show, onClose, event, payers, expense, on
 
     const updateParcelaField = (i, field, value) => {
         setData('parcelas', data.parcelas.map((p, j) => (j === i ? { ...p, [field]: value } : p)));
+        // Keep "Primeiro vencimento" generator in sync with parcela #1
+        if (i === 0 && field === 'vencimento') setBaseDate(value);
     };
 
     const addParcela = () => {
@@ -639,11 +642,10 @@ export default function ExpenseModal({ show, onClose, event, payers, expense, on
                             </div>
                             <div className="flex-1">
                                 <p className="mb-1 text-xs text-gray-500">Primeiro vencimento</p>
-                                <TextInput
-                                    type="date"
+                                <DatePicker
                                     value={baseDate}
-                                    onChange={(e) => setBaseDate(e.target.value)}
-                                    className="block w-full py-1.5 text-sm"
+                                    onChange={(val) => setBaseDate(val)}
+                                    placeholder="Selecione a data"
                                 />
                             </div>
                             <button
@@ -697,11 +699,11 @@ export default function ExpenseModal({ show, onClose, event, payers, expense, on
                                             className="w-28 py-1.5 text-right text-sm"
                                         />
 
-                                        <TextInput
-                                            type="date"
+                                        <DatePicker
                                             value={p.vencimento}
-                                            onChange={(e) => updateParcelaField(i, 'vencimento', e.target.value)}
-                                            className="flex-1 py-1.5 text-sm"
+                                            onChange={(val) => updateParcelaField(i, 'vencimento', val)}
+                                            placeholder="Vencimento"
+                                            className="flex-1"
                                         />
 
                                         {isEditing && dbId && (

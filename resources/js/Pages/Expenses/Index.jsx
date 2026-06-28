@@ -56,7 +56,7 @@ function StatusBadge({ status }) {
 
 function StatCard({ label, value, accent, highlight }) {
     return (
-        <div className={`flex flex-col gap-3 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 ${highlight ? 'border-l-4 border-amber-300' : ''}`}>
+        <div className={`flex flex-col gap-3 rounded-2xl p-6 shadow-sm ring-1 ring-black/5 ${highlight ? 'border-l-4 border-amber-400 bg-amber-50/40' : 'bg-white'}`}>
             <span className="text-xs font-semibold uppercase tracking-widest text-slate-400">
                 {label}
             </span>

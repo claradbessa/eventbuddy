@@ -18,6 +18,7 @@ class TenantEvent extends Model
         'name',
         'slug',
         'descricao',
+        'event_type',
         'data_inicio',
         'data_fim',
         'status',
@@ -53,5 +54,10 @@ class TenantEvent extends Model
     public function parcelas(): HasMany
     {
         return $this->hasMany(ParcelaDespesa::class, 'event_id');
+    }
+
+    public function checklistTasks(): HasMany
+    {
+        return $this->hasMany(EventChecklistTask::class, 'event_id')->orderBy('order');
     }
 }

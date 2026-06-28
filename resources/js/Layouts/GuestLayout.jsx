@@ -1,16 +1,7 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import { Link } from '@inertiajs/react';
-
 export default function GuestLayout({ children }) {
     return (
-        <div className="flex min-h-screen flex-col items-center bg-gray-100 pt-6 sm:justify-center sm:pt-0">
-            <div>
-                <Link href="/">
-                    <ApplicationLogo className="h-28 w-auto" />
-                </Link>
-            </div>
-
-            <div className="mt-6 w-full overflow-hidden bg-white px-6 py-4 shadow-md sm:max-w-md sm:rounded-lg">
+        <div className="flex min-h-screen flex-col items-center bg-[#F8F7F4] sm:justify-center">
+            <div className="w-full overflow-hidden rounded-2xl bg-white px-8 py-10 shadow-xl shadow-slate-200/60 ring-1 ring-black/5 sm:max-w-md">
                 {children}
             </div>
         </div>

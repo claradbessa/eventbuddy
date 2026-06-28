@@ -26,6 +26,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'flash' => [
                 'warning' => fn() => $request->session()->get('calendar_warning'),
+                'toast'   => fn() => $request->session()->get('toast'),
             ],
         ];
     }
