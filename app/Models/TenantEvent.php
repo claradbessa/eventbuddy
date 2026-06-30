@@ -36,26 +36,31 @@ class TenantEvent extends Model
         return 'slug';
     }
 
+    /** @return BelongsTo<User, $this> */
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
 
+    /** @return HasMany<EventPagador, $this> */
     public function pagadores(): HasMany
     {
         return $this->hasMany(EventPagador::class, 'event_id');
     }
 
+    /** @return HasMany<FornecedorDespesa, $this> */
     public function despesas(): HasMany
     {
         return $this->hasMany(FornecedorDespesa::class, 'event_id');
     }
 
+    /** @return HasMany<ParcelaDespesa, $this> */
     public function parcelas(): HasMany
     {
         return $this->hasMany(ParcelaDespesa::class, 'event_id');
     }
 
+    /** @return HasMany<EventChecklistTask, $this> */
     public function checklistTasks(): HasMany
     {
         return $this->hasMany(EventChecklistTask::class, 'event_id')->orderBy('order');

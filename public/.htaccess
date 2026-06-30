@@ -1,3 +1,10 @@
+# Increase PHP upload limits for contract attachments (max 20 MB).
+# These directives only take effect under mod_php; for FastCGI/FPM see public/.user.ini.
+<IfModule mod_php.c>
+    php_value upload_max_filesize 20M
+    php_value post_max_size       25M
+</IfModule>
+
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes

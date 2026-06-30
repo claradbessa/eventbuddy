@@ -30,8 +30,9 @@ class FornecedorDespesaController extends Controller
     {
         $data = $request->validated();
 
-        $despesa = DB::transaction(function () use ($data, $event) {
+        $despesa = DB::transaction(function () use ($data, $event): FornecedorDespesa {
             // 1. Cria a despesa
+            /** @var FornecedorDespesa $despesa */
             $despesa = $event->despesas()->create([
                 'fornecedor_nome' => $data['fornecedor_nome'],
                 'categoria'       => $data['categoria'],

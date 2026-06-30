@@ -20,6 +20,7 @@ class EventChecklistTask extends Model
         'auto_check_category',
     ];
 
+    /** @return array<string, string> */
     protected function casts(): array
     {
         return [
@@ -28,6 +29,7 @@ class EventChecklistTask extends Model
         ];
     }
 
+    /** @return BelongsTo<TenantEvent, $this> */
     public function evento(): BelongsTo
     {
         return $this->belongsTo(TenantEvent::class, 'event_id');

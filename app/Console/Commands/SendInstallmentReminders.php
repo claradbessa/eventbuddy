@@ -31,7 +31,13 @@ class SendInstallmentReminders extends Command
                 ->get();
 
             foreach ($parcelas as $parcela) {
-                $owner = $parcela->despesa?->event?->owner;
+                $despesa = $parcela->despesa;
+
+                if ($despesa === null) {
+                    continue;
+                }
+
+                $owner = $despesa->event?->owner;
 
                 if (! $owner instanceof User) {
                     continue;
@@ -48,13 +54,13 @@ class SendInstallmentReminders extends Command
                 }
 
                 $owner->notify(new SupplierInstallmentReminder(
-                    fornecedor:   $parcela->despesa,
+                    fornecedor:   $despesa,
                     parcela:      $parcela,
                     daysUntilDue: $days,
                 ));
 
                 $sent++;
-                $this->line("  → [{$owner->email}] {$parcela->despesa->fornecedor_nome} — parcela #{$parcela->numero_parcela} (em {$days}d)");
+                $this->line("  → [{$owner->email}] {$despesa->fornecedor_nome} — parcela #{$parcela->numero_parcela} (em {$days}d)");
             }
         }
 

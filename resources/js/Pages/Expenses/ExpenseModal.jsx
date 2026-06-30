@@ -177,8 +177,9 @@ function CurrencyInput({ value, onChange, className, placeholder, disabled }) {
         setDisplay(newDisplay);
         onChange(cents ? (cents / 100).toFixed(2) : '');
         // Always snap cursor to end so backspace/typing stays consistent.
+        // Guard: setSelectionRange is not available on file/select/checkbox inputs.
         requestAnimationFrame(() => {
-            if (inputRef.current) {
+            if (inputRef.current && typeof inputRef.current.setSelectionRange === 'function') {
                 inputRef.current.setSelectionRange(newDisplay.length, newDisplay.length);
             }
         });
@@ -419,6 +420,8 @@ export default function ExpenseModal({ show, onClose, event, payers, expense, on
             transform((d) => ({ ...d, _method: 'patch' }));
             post(route('fornecedores.update', { evento: event.slug, fornecedor: expense.id }), opts);
         } else {
+            // Reset any transform left over from a previous edit in the same component instance.
+            transform((d) => d);
             post(route('fornecedores.store', { evento: event.slug }), opts);
         }
     };

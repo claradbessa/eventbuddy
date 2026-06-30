@@ -17,13 +17,7 @@ class NotificationController extends Controller
 
         $notifications = $user->unreadNotifications()->latest()->take(50)->get()
             ->map(function ($n) {
-                // Normaliza data: o cast 'array' do DatabaseNotification decodifica
-                // uma vez, mas inserts diretos no BD podem gerar string duplamente
-                // codificada. Garantimos que sempre retornamos um objeto/array.
                 $data = $n->data;
-                if (is_string($data)) {
-                    $data = json_decode($data, true) ?? [];
-                }
 
                 return [
                     'id'         => $n->id,

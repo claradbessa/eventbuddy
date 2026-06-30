@@ -16,7 +16,10 @@ class GoogleController extends Controller
 
     public function redirect()
     {
-        return Socialite::driver('google')
+        /** @var \Laravel\Socialite\Two\GoogleProvider $driver */
+        $driver = Socialite::driver('google');
+
+        return $driver
             ->scopes(config('services.google.scopes'))
             ->with(config('services.google.with'))
             ->redirect();
@@ -29,6 +32,7 @@ class GoogleController extends Controller
                 ->withErrors(['email' => 'O acesso via Google foi cancelado. Tente novamente.']);
         }
 
+        /** @var \Laravel\Socialite\Two\User $googleUser */
         $googleUser = Socialite::driver('google')->user();
 
         $user = User::updateOrCreate(
@@ -38,7 +42,7 @@ class GoogleController extends Controller
                 'email'                   => $googleUser->getEmail(),
                 'avatar'                  => $googleUser->getAvatar(),
                 'google_token'            => $googleUser->token,
-                'google_refresh_token'    => $googleUser->refreshToken ?? null,
+                'google_refresh_token'    => $googleUser->refreshToken,
                 'google_token_expires_at' => $googleUser->expiresIn
                     ? now()->addSeconds($googleUser->expiresIn)
                     : null,
@@ -64,7 +68,10 @@ class GoogleController extends Controller
 
     public function calendarRedirect()
     {
-        return Socialite::driver('google')
+        /** @var \Laravel\Socialite\Two\GoogleProvider $driver */
+        $driver = Socialite::driver('google');
+
+        return $driver
             ->scopes(config('services.google.scopes'))
             ->with(config('services.google.with'))
             ->redirect();
@@ -77,6 +84,7 @@ class GoogleController extends Controller
                 ->withErrors(['google' => 'Conexão com o Google Calendar cancelada.']);
         }
 
+        /** @var \Laravel\Socialite\Two\User $googleUser */
         $googleUser = Socialite::driver('google')->user();
 
         $user = Auth::user();

@@ -8,6 +8,7 @@ export default forwardRef(function TextInput(
 
     useImperativeHandle(ref, () => ({
         focus: () => localRef.current?.focus(),
+        setSelectionRange: (start, end, dir) => localRef.current?.setSelectionRange(start, end, dir),
     }));
 
     useEffect(() => {

@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * @property DespesaPagador $pivot
+ */
 class EventPagador extends Model
 {
     protected $table = 'event_pagadores';

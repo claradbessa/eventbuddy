@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FornecedorDespesa;
+use App\Models\ParcelaDespesa;
 use App\Models\TenantEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -51,8 +53,10 @@ class DashboardController extends Controller
 
         $proximoVencimento = null;
         if ($proximaParcela) {
-            $venc = Carbon::parse($proximaParcela->data_vencimento);
-            $dias = $today->diffInDays($venc, false); // negative = overdue
+            /** @var \Carbon\Carbon $dataVenc */
+            $dataVenc = $proximaParcela->data_vencimento;
+            $venc     = $dataVenc instanceof Carbon ? $dataVenc : Carbon::parse($dataVenc);
+            $dias     = $today->diffInDays($venc, false); // negative = overdue
             $proximoVencimento = [
                 'label'  => $proximaParcela->despesa->fornecedor_nome ?? '—',
                 'amount' => (float) $proximaParcela->valor_parcela,
@@ -67,18 +71,21 @@ class DashboardController extends Controller
             ->orderByDesc('updated_at')
             ->limit(5)
             ->get(['id', 'fornecedor_nome', 'categoria', 'valor_total', 'updated_at'])
-            ->map(function ($f) {
+            ->map(function (FornecedorDespesa $f) {
                 // Derive status from parcelas without loading the full collection
                 $parcelas = $f->parcelas()->select('status', 'data_vencimento')->get();
                 if ($parcelas->isEmpty()) {
                     $status = 'pendente';
-                } elseif ($parcelas->every(fn($p) => $p->status === 'pago')) {
+                } elseif ($parcelas->every(fn(ParcelaDespesa $p) => $p->status === 'pago')) {
                     $status = 'pago';
-                } elseif ($parcelas->contains(fn($p) => $p->isAtrasado())) {
+                } elseif ($parcelas->contains(fn(ParcelaDespesa $p) => $p->isAtrasado())) {
                     $status = 'atrasado';
                 } else {
                     $status = 'pendente';
                 }
+
+                /** @var \Carbon\Carbon $updatedAt */
+                $updatedAt = $f->updated_at;
 
                 return [
                     'id'     => $f->id,
@@ -86,7 +93,7 @@ class DashboardController extends Controller
                     'cat'    => $f->categoria ?? '—',
                     'amount' => (float) $f->valor_total,
                     'status' => $status,
-                    'date'   => $f->updated_at->format('d/m'),
+                    'date'   => $updatedAt->format('d/m'),
                 ];
             })
             ->values();
@@ -98,9 +105,12 @@ class DashboardController extends Controller
             ->orderBy('data_vencimento')
             ->limit(5)
             ->get(['id', 'despesa_id', 'valor_parcela', 'data_vencimento', 'numero_parcela'])
-            ->map(function ($p) use ($today) {
-                $venc = Carbon::parse($p->data_vencimento);
-                $dias = $today->diffInDays($venc, false);
+            ->map(function (ParcelaDespesa $p) use ($today) {
+                /** @var \Carbon\Carbon $dataVenc */
+                $dataVenc = $p->data_vencimento;
+                $venc     = $dataVenc instanceof Carbon ? $dataVenc : Carbon::parse($dataVenc);
+                $dias     = $today->diffInDays($venc, false);
+
                 return [
                     'id'     => $p->id,
                     'label'  => ($p->despesa->fornecedor_nome ?? '—') . ' · Parcela ' . $p->numero_parcela,

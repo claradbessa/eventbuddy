@@ -28,11 +28,13 @@ class ParcelaDespesa extends Model
         'data_pagamento'  => 'date',
     ];
 
+    /** @return BelongsTo<TenantEvent, $this> */
     public function event(): BelongsTo
     {
         return $this->belongsTo(TenantEvent::class, 'event_id');
     }
 
+    /** @return BelongsTo<FornecedorDespesa, $this> */
     public function despesa(): BelongsTo
     {
         return $this->belongsTo(FornecedorDespesa::class, 'despesa_id');

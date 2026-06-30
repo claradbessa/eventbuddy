@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\FornecedorDespesa;
+use App\Models\TenantEvent;
 use App\Models\User;
 use Google\Client as GoogleClient;
 use Google\Service\Calendar;
@@ -68,6 +70,150 @@ class GoogleCalendarService
             if ($e->getCode() !== 404) {
                 throw $e;
             }
+        }
+    }
+
+    // ── High-level despesa sync ────────────────────────────────────────────────
+
+    /**
+     * Sincroniza as parcelas pendentes de uma despesa com o Google Calendar.
+     * Retorna mensagem de aviso em caso de falha, null em caso de sucesso.
+     */
+    public function syncDespesaParcelas(User $user, TenantEvent $evento, ?FornecedorDespesa $despesa): ?string
+    {
+        if (! $user->google_refresh_token || ! $despesa) {
+            return null;
+        }
+
+        try {
+            $despesa->load('pagadores');
+            $pagadores = $despesa->pagadores;
+
+            $attendees = $pagadores
+                ->filter(fn($p) => filter_var($p->email ?? '', FILTER_VALIDATE_EMAIL) && $p->email !== $user->email)
+                ->pluck('email')
+                ->values()
+                ->toArray();
+
+            $todasParcelas    = $despesa->parcelas;
+            $totalAllParcelas = $todasParcelas->count();
+            $parcelas         = $todasParcelas->filter(fn($p) => $p->status !== 'pago')->values();
+
+            $isSinglePayer = $pagadores->count() === 1;
+            $createdIds    = [];
+
+            foreach ($parcelas as $parcela) {
+                $valorParcela = (float) $parcela->valor_parcela;
+
+                $baseTitle = $totalAllParcelas > 1
+                    ? "{$despesa->fornecedor_nome} — Parcela {$parcela->numero_parcela}/{$totalAllParcelas}"
+                    : $despesa->fornecedor_nome;
+
+                $titulo = $isSinglePayer
+                    ? '💰 [' . $pagadores->first()->nome . '] ' . $baseTitle
+                    : '🤝 [Dividido] ' . $baseTitle;
+
+                $linhasPagadores = $pagadores->map(function ($pag) use ($valorParcela, $totalAllParcelas) {
+                    $percentual = $pag->pivot->percentual;
+                    $valorFixo  = $pag->pivot->valor;
+
+                    if ($percentual !== null) {
+                        $perc    = (float) $percentual;
+                        $share   = $valorParcela * $perc / 100;
+                        $percStr = rtrim(rtrim(number_format($perc, 2, ',', ''), '0'), ',');
+                        return "  • {$pag->nome}: R\$ " . number_format($share, 2, ',', '.') . " ({$percStr}%)";
+                    }
+
+                    if ($valorFixo !== null) {
+                        $share = (float) $valorFixo / max($totalAllParcelas, 1);
+                        return "  • {$pag->nome}: R\$ " . number_format($share, 2, ',', '.');
+                    }
+
+                    return "  • {$pag->nome}: —";
+                })->implode("\n");
+
+                $valorFormatado = 'R$ ' . number_format($valorParcela, 2, ',', '.');
+
+                $descricao = implode("\n", array_filter([
+                    "💳 Valor desta parcela: {$valorFormatado}",
+                    "",
+                    "👥 Responsabilidade:",
+                    $linhasPagadores,
+                    "",
+                    "Categoria: {$despesa->categoria}",
+                    $despesa->descricao ? "Obs: {$despesa->descricao}" : null,
+                    "Evento: {$evento->name}",
+                ]));
+
+                $vencimento      = $parcela->data_vencimento->toDateString();
+                $existingEventId = $parcela->google_event_id;
+
+                $calendarEventId = $this->upsertEvent($user, $existingEventId, [
+                    'title'       => $titulo,
+                    'description' => $descricao,
+                    'date'        => $vencimento,
+                    'attendees'   => $attendees,
+                ]);
+
+                if (! $existingEventId) {
+                    $parcela->updateQuietly(['google_event_id' => $calendarEventId]);
+                }
+
+                $createdIds[] = [
+                    'parcela_id'     => $parcela->id,
+                    'vencimento'     => $vencimento,
+                    'action'         => $existingEventId ? 'updated' : 'created',
+                    'calendar_event' => $calendarEventId,
+                ];
+            }
+
+            \Log::info('Google Calendar sync OK', [
+                'user_id'       => $user->id,
+                'user_email'    => $user->email,
+                'despesa_id'    => $despesa->id,
+                'fornecedor'    => $despesa->fornecedor_nome,
+                'parcelas_sync' => $createdIds,
+            ]);
+
+            return null;
+
+        } catch (\Throwable $e) {
+            \Log::error('Google Calendar sync FAILED', [
+                'user_id'    => $user->id,
+                'user_email' => $user->email,
+                'despesa_id' => $despesa->id,
+                'error'      => $e->getMessage(),
+            ]);
+
+            return 'Fornecedor salvo! Não foi possível criar os eventos na agenda do Google: ' . $e->getMessage();
+        }
+    }
+
+    /**
+     * Remove todos os eventos do Google Calendar associados às parcelas de uma despesa.
+     * Falha silenciosamente — a exclusão da despesa não depende da agenda.
+     */
+    public function deleteDespesaEvents(User $user, FornecedorDespesa $despesa): void
+    {
+        if (! $user->google_refresh_token) {
+            return;
+        }
+
+        $parcelas = $despesa->parcelas()->whereNotNull('google_event_id')->get();
+
+        if ($parcelas->isEmpty()) {
+            return;
+        }
+
+        try {
+            foreach ($parcelas as $parcela) {
+                if ($parcela->google_event_id === null) {
+                    continue;
+                }
+                $this->deleteEvent($user, $parcela->google_event_id);
+            }
+        } catch (\Throwable) {
+            // Falha silenciosa — a despesa é removida independentemente
         }
     }
 

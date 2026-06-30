@@ -64,7 +64,7 @@ class StoreDespesaRequest extends FormRequest
 
             // Se todos usam percentual (não nulo e não vazio), a soma deve ser 100
             $todos_com_percentual = count($pagadores) > 0 && collect($pagadores)->every(
-                fn($p) => isset($p['percentual']) && $p['percentual'] !== null && $p['percentual'] !== ''
+                fn($p) => isset($p['percentual']) && $p['percentual'] !== '' && is_numeric($p['percentual'])
             );
 
             if ($todos_com_percentual) {

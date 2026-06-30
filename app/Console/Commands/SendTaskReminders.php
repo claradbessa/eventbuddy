@@ -86,11 +86,14 @@ class SendTaskReminders extends Command
 
         $owner->notify(new TaskDeadlineReminder($task, 3));
 
+        /** @var \Carbon\Carbon $dueDate */
+        $dueDate = $task->due_date;
+
         $this->info('Notificação de teste disparada com sucesso!');
         $this->line("  Destinatário : {$owner->name} <{$owner->email}>");
         $this->line("  Tarefa       : {$task->title}");
-        $this->line("  Evento       : {$task->evento?->name}");
-        $this->line("  Vencimento   : {$task->due_date->format('d/m/Y')}");
+        $this->line("  Evento       : {$task->evento->name}");
+        $this->line("  Vencimento   : {$dueDate->format('d/m/Y')}");
 
         return Command::SUCCESS;
     }

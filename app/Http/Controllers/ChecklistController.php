@@ -25,21 +25,28 @@ class ChecklistController extends Controller
             ->orderByRaw('(due_date IS NULL) ASC, due_date ASC')
             ->orderBy('order', 'asc')
             ->get()
-            ->map(fn(EventChecklistTask $task) => [
-                'id'           => $task->id,
-                'title'        => $task->title,
-                'status'       => $task->status,
-                'priority'     => $task->priority,
-                'due_date'     => $task->due_date?->toDateString(),
-                'completed_at' => $task->completed_at?->toDateTimeString(),
-                'order'        => $task->order,
-                'is_late'      => $task->due_date
-                    && $task->status !== 'concluido'
-                    && $task->due_date->lt($today),
-                'days_until'   => $task->due_date
-                    ? (int) $today->diffInDays($task->due_date, false)
-                    : null,
-            ]);
+            ->map(function (EventChecklistTask $task) use ($today) {
+                /** @var \Carbon\Carbon|null $dueDate */
+                $dueDate = $task->due_date;
+                /** @var \Carbon\Carbon|null $completedAt */
+                $completedAt = $task->completed_at;
+
+                return [
+                    'id'           => $task->id,
+                    'title'        => $task->title,
+                    'status'       => $task->status,
+                    'priority'     => $task->priority,
+                    'due_date'     => $dueDate?->toDateString(),
+                    'completed_at' => $completedAt?->toDateTimeString(),
+                    'order'        => $task->order,
+                    'is_late'      => $dueDate !== null
+                        && $task->status !== 'concluido'
+                        && $dueDate->lt($today),
+                    'days_until'   => $dueDate !== null
+                        ? (int) $today->diffInDays($dueDate, false)
+                        : null,
+                ];
+            });
 
         $done    = $tasks->where('status', 'concluido')->count();
         $total   = $tasks->count();

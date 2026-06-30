@@ -23,12 +23,15 @@ class TaskDeadlineReminder extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $due       = $this->task->due_date->format('d/m/Y');
-        $eventName = $this->task->evento?->name ?? 'seu evento';
-        $slug      = $this->task->evento?->slug;
+        /** @var \Carbon\Carbon $dueDate */
+        $dueDate   = $this->task->due_date;
+        $due       = $dueDate->format('d/m/Y');
+        $evento    = $this->task->evento;
+        $eventName = $evento !== null ? ($evento->name ?? 'seu evento') : 'seu evento';
+        $slug      = $evento?->slug;
         $url       = $slug ? url("/{$slug}/checklist") : url('/dashboard');
 
-        $subject = "⚠️ Lembrete: "{$this->task->title}" está chegando ao prazo!";
+        $subject = "⚠️ Lembrete: \"{$this->task->title}\" está chegando ao prazo!";
 
         return (new MailMessage)
             ->subject($subject)
@@ -44,9 +47,11 @@ class TaskDeadlineReminder extends Notification
 
     public function toArray(object $notifiable): array
     {
-        $due   = $this->task->due_date->format('d/m/Y');
-        $title = $this->task->title;
-        $plural = $this->daysUntil > 1 ? 's' : '';
+        /** @var \Carbon\Carbon $dueDate */
+        $dueDate = $this->task->due_date;
+        $due     = $dueDate->format('d/m/Y');
+        $title   = $this->task->title;
+        $plural  = $this->daysUntil > 1 ? 's' : '';
 
         return [
             'title'    => 'Tarefa próxima do vencimento',
@@ -55,7 +60,7 @@ class TaskDeadlineReminder extends Notification
             'meta'     => [
                 'task_id'    => $this->task->id,
                 'task_title' => $title,
-                'due_date'   => $this->task->due_date->toDateString(),
+                'due_date'   => $dueDate->toDateString(),
                 'priority'   => $this->task->priority,
                 'event_id'   => $this->task->event_id,
                 'days_until' => $this->daysUntil,

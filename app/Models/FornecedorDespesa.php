@@ -41,16 +41,19 @@ class FornecedorDespesa extends Model
             : null;
     }
 
+    /** @return BelongsTo<TenantEvent, $this> */
     public function event(): BelongsTo
     {
         return $this->belongsTo(TenantEvent::class, 'event_id');
     }
 
+    /** @return HasMany<ParcelaDespesa, $this> */
     public function parcelas(): HasMany
     {
         return $this->hasMany(ParcelaDespesa::class, 'despesa_id')->orderBy('numero_parcela');
     }
 
+    /** @return BelongsToMany<EventPagador, $this, DespesaPagador> */
     public function pagadores(): BelongsToMany
     {
         return $this->belongsToMany(EventPagador::class, 'despesa_pagadores', 'despesa_id', 'pagador_id')
@@ -68,15 +71,15 @@ class FornecedorDespesa extends Model
             return 'pendente';
         }
 
-        if ($parcelas->every(fn($p) => $p->status === 'pago')) {
+        if ($parcelas->every(fn(ParcelaDespesa $p) => $p->status === 'pago')) {
             return 'pago';
         }
 
-        if ($parcelas->contains(fn($p) => $p->isAtrasado())) {
+        if ($parcelas->contains(fn(ParcelaDespesa $p) => $p->isAtrasado())) {
             return 'atrasado';
         }
 
-        if ($parcelas->every(fn($p) => $p->status === 'cancelado')) {
+        if ($parcelas->every(fn(ParcelaDespesa $p) => $p->status === 'cancelado')) {
             return 'cancelado';
         }
 
