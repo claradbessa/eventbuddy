@@ -22,6 +22,7 @@ class TenantEvent extends Model
         'data_inicio',
         'data_fim',
         'status',
+        'max_guests',
         'configuracoes',
     ];
 
@@ -29,6 +30,7 @@ class TenantEvent extends Model
         'configuracoes' => 'array',
         'data_inicio'   => 'date',
         'data_fim'      => 'date',
+        'max_guests'    => 'integer',
     ];
 
     public function getRouteKeyName(): string
@@ -64,5 +66,11 @@ class TenantEvent extends Model
     public function checklistTasks(): HasMany
     {
         return $this->hasMany(EventChecklistTask::class, 'event_id')->orderBy('order');
+    }
+
+    /** @return HasMany<Guest, $this> */
+    public function guests(): HasMany
+    {
+        return $this->hasMany(Guest::class, 'event_id');
     }
 }

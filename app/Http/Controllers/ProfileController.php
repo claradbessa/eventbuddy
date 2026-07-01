@@ -19,7 +19,7 @@ class ProfileController extends Controller
     {
         $evento = TenantEvent::where('owner_id', $request->user()->id)
             ->orderBy('id')
-            ->first(['id', 'name', 'event_type', 'data_inicio']);
+            ->first(['id', 'name', 'event_type', 'data_inicio', 'max_guests']);
 
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail'  => $request->user() instanceof MustVerifyEmail,
@@ -28,6 +28,7 @@ class ProfileController extends Controller
                 'name'       => $evento->name,
                 'event_type' => $evento->event_type,
                 'event_date' => $evento->data_inicio?->toDateString(),
+                'max_guests' => $evento->max_guests,
             ] : null,
             'googleConnected' => filled($request->user()->google_token),
             'hasPassword'     => ! is_null($request->user()->password),
@@ -53,7 +54,8 @@ class ProfileController extends Controller
         // ── Atualiza TenantEvent (se existir e algum campo de evento vier) ───
         $hasEventData = filled($validated['event_name'] ?? null)
                      || filled($validated['event_type'] ?? null)
-                     || filled($validated['event_date'] ?? null);
+                     || filled($validated['event_date'] ?? null)
+                     || array_key_exists('max_guests', $validated); // nullable — presença já conta
 
         if ($hasEventData) {
             $evento = TenantEvent::where('owner_id', $request->user()->id)
@@ -63,13 +65,19 @@ class ProfileController extends Controller
             if ($evento) {
                 $previousType = $evento->event_type;
 
-                $evento->fill(array_filter([
+                // Campos não-nullable: filtra nulls para não sobrescrever com null
+                $updates = array_filter([
                     'name'        => $validated['event_name'] ?: $evento->name,
                     'event_type'  => $validated['event_type'] ?? $evento->event_type,
                     'data_inicio' => $validated['event_date'] ?? $evento->data_inicio,
-                ], fn($v) => $v !== null));
+                ], fn ($v) => $v !== null);
 
-                $evento->save();
+                // max_guests pode ser null intencionalmente (limpar o limite)
+                if (array_key_exists('max_guests', $validated)) {
+                    $updates['max_guests'] = $validated['max_guests'];
+                }
+
+                $evento->fill($updates)->save();
 
                 // Injeta checklist apenas na primeira definição do tipo de evento
                 if (! filled($previousType) && filled($evento->event_type)) {

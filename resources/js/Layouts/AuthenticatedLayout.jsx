@@ -107,6 +107,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Checklist
                                 </NavLink>
+                                <NavLink
+                                    href={eventSlug ? route('guests.index', { evento: eventSlug }) : '#'}
+                                    active={route().current('guests.index')}
+                                >
+                                    Convidados
+                                </NavLink>
                             </div>
                         </div>
 
@@ -171,6 +177,9 @@ export default function AuthenticatedLayout({ header, children }) {
                         <ResponsiveNavLink href={eventSlug ? route('checklist.index', { evento: eventSlug }) : '#'} active={route().current('checklist.index')}>
                             Checklist
                         </ResponsiveNavLink>
+                        <ResponsiveNavLink href={eventSlug ? route('guests.index', { evento: eventSlug }) : '#'} active={route().current('guests.index')}>
+                            Convidados
+                        </ResponsiveNavLink>
                     </div>
                     <div className="border-t border-slate-100 pb-1 pt-4">
                         <div className="px-4">
@@ -187,7 +196,7 @@ export default function AuthenticatedLayout({ header, children }) {
 
             {header && (
                 <header className="border-b border-slate-100 bg-white">
-                    <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+                    <div className="mx-auto max-w-7xl px-4 py-3.5 sm:px-6 lg:px-8">
                         {header}
                     </div>
                 </header>

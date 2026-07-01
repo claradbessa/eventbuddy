@@ -20,11 +20,12 @@ class ProfileUpdateRequest extends FormRequest
             ],
 
             // ── Evento (todos opcionais) ───────────────────────────────────────
-            'event_name' => ['nullable', 'string', 'max:255'],
-            'event_type' => ['nullable', 'string', Rule::in([
+            'event_name'  => ['nullable', 'string', 'max:255'],
+            'event_type'  => ['nullable', 'string', Rule::in([
                 'Casamento', 'Aniversário', '15 Anos', 'Chá de Bebê', 'Formatura', 'Corporativo', 'Outros',
             ])],
-            'event_date' => ['nullable', 'date'],
+            'event_date'  => ['nullable', 'date'],
+            'max_guests'  => ['nullable', 'integer', 'min:1', 'max:10000'],
         ];
     }
 }

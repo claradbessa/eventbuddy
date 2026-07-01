@@ -5,6 +5,7 @@ use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventExpensesController;
 use App\Http\Controllers\EventPagadorController;
+use App\Http\Controllers\GuestController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Models\TenantEvent;
@@ -66,6 +67,14 @@ Route::middleware('auth')->group(function () {
         Route::delete('/fornecedores/{fornecedor}', [EventExpensesController::class, 'destroy'])->name('fornecedores.destroy');
 
         Route::post('/pagadores', [EventPagadorController::class, 'store'])->name('pagadores.store');
+
+        // ── Convidados ────────────────────────────────────────────────────────
+        Route::get('/convidados',                          [GuestController::class, 'index'])->name('guests.index');
+        Route::post('/convidados',                         [GuestController::class, 'store'])->name('guests.store');
+        Route::patch('/convidados/max-guests',             [GuestController::class, 'updateMaxGuests'])->name('guests.max-guests');
+        Route::patch('/convidados/{guest}',                [GuestController::class, 'update'])->name('guests.update');
+        Route::patch('/convidados/{guest}/status',         [GuestController::class, 'updateStatus'])->name('guests.status');
+        Route::delete('/convidados/{guest}',               [GuestController::class, 'destroy'])->name('guests.destroy');
 
         Route::patch(
             '/fornecedores/{fornecedor}/parcelas/{parcela}',
