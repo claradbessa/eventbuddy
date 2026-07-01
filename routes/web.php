@@ -72,6 +72,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/convidados',                          [GuestController::class, 'index'])->name('guests.index');
         Route::post('/convidados',                         [GuestController::class, 'store'])->name('guests.store');
         Route::patch('/convidados/max-guests',             [GuestController::class, 'updateMaxGuests'])->name('guests.max-guests');
+        Route::delete('/convidados/bulk',                  [GuestController::class, 'bulkDestroy'])->name('guests.bulk-destroy');
+        // Export routes — must stay before {guest} to avoid model-binding conflict
+        Route::get('/convidados/export/csv',               [GuestController::class, 'exportCsv'])->name('guests.export.csv');
+        Route::get('/convidados/export/reception-pdf',     [GuestController::class, 'exportReceptionPdf'])->name('guests.export.reception-pdf');
+        Route::get('/convidados/export/seating-pdf',       [GuestController::class, 'exportSeatingPdf'])->name('guests.export.seating-pdf');
         Route::patch('/convidados/{guest}',                [GuestController::class, 'update'])->name('guests.update');
         Route::patch('/convidados/{guest}/status',         [GuestController::class, 'updateStatus'])->name('guests.status');
         Route::delete('/convidados/{guest}',               [GuestController::class, 'destroy'])->name('guests.destroy');

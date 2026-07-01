@@ -143,6 +143,80 @@ describe('GuestService::summary', function () {
     });
 });
 
+describe('GuestService::bulkDelete', function () {
+    beforeEach(function () {
+        $this->service = new GuestService();
+
+        $user = User::factory()->create();
+
+        $this->evento = TenantEvent::create([
+            'owner_id'   => $user->id,
+            'name'       => 'Aniversário Bulk',
+            'slug'       => 'aniversario-bulk-delete',
+            'data_inicio' => now()->addMonths(3)->toDateString(),
+            'status'     => 'ativo',
+        ]);
+    });
+
+    it('deletes all given IDs that belong to the event and returns the count', function () {
+        $g1 = Guest::create(['event_id' => $this->evento->id, 'name' => 'A', 'tier' => 'B', 'accompanists_count' => 0]);
+        $g2 = Guest::create(['event_id' => $this->evento->id, 'name' => 'B', 'tier' => 'B', 'accompanists_count' => 0]);
+
+        $deleted = $this->service->bulkDelete([$g1->id, $g2->id], $this->evento);
+
+        expect($deleted)->toBe(2)
+            ->and(Guest::find($g1->id))->toBeNull()
+            ->and(Guest::find($g2->id))->toBeNull();
+    });
+
+    it('returns 0 and removes nothing when ids is empty', function () {
+        Guest::create(['event_id' => $this->evento->id, 'name' => 'C', 'tier' => 'A', 'accompanists_count' => 0]);
+
+        $deleted = $this->service->bulkDelete([], $this->evento);
+
+        expect($deleted)->toBe(0)
+            ->and(Guest::where('event_id', $this->evento->id)->count())->toBe(1);
+    });
+
+    it('does not delete guests that belong to another event', function () {
+        $otherUser  = User::factory()->create();
+        $otherEvento = TenantEvent::create([
+            'owner_id'   => $otherUser->id,
+            'name'       => 'Outro Evento Bulk',
+            'slug'       => 'outro-evento-bulk',
+            'data_inicio' => now()->addMonths(1)->toDateString(),
+            'status'     => 'ativo',
+        ]);
+
+        $foreignGuest = Guest::create(['event_id' => $otherEvento->id, 'name' => 'Intruso', 'tier' => 'A', 'accompanists_count' => 0]);
+
+        $deleted = $this->service->bulkDelete([$foreignGuest->id], $this->evento);
+
+        expect($deleted)->toBe(0)
+            ->and(Guest::find($foreignGuest->id))->not->toBeNull();
+    });
+
+    it('only deletes owned IDs when the list is a mix of own and foreign', function () {
+        $otherUser  = User::factory()->create();
+        $otherEvento = TenantEvent::create([
+            'owner_id'   => $otherUser->id,
+            'name'       => 'Evento Alheio',
+            'slug'       => 'evento-alheio-mix',
+            'data_inicio' => now()->addMonths(2)->toDateString(),
+            'status'     => 'ativo',
+        ]);
+
+        $ownGuest     = Guest::create(['event_id' => $this->evento->id,  'name' => 'Próprio', 'tier' => 'B', 'accompanists_count' => 0]);
+        $foreignGuest = Guest::create(['event_id' => $otherEvento->id, 'name' => 'Alheio',  'tier' => 'A', 'accompanists_count' => 0]);
+
+        $deleted = $this->service->bulkDelete([$ownGuest->id, $foreignGuest->id], $this->evento);
+
+        expect($deleted)->toBe(1)
+            ->and(Guest::find($ownGuest->id))->toBeNull()
+            ->and(Guest::find($foreignGuest->id))->not->toBeNull();
+    });
+});
+
 describe('GuestService::updateStatus', function () {
     beforeEach(function () {
         $this->service = new GuestService();
